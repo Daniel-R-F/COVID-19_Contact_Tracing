@@ -5,24 +5,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.TextView;
 
-/**
- * Sign in email & password or Google.
- * @author Daniel Rangel Figueroa
- */
-public class SignInActivity extends AppCompatActivity {
-
-    private TextView mLinkTV;
-
+public class SignUpActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sign_in);
-
+        setContentView(R.layout.activity_sign_up);
         wireDisplay();
     }
+
+
 
     /**
      * Factory pattern provided Intent to switch to this activity.
@@ -31,13 +24,14 @@ public class SignInActivity extends AppCompatActivity {
      * @return returns activity's intent.
      */
     public static Intent intentFactory(Context context) {
-        return new Intent(context, SignInActivity.class);
+        return new Intent(context, SignUpActivity.class);
     }
 
+
     private void wireDisplay(){
-        mLinkTV = findViewById(R.id.sign_up_redirect);
-        mLinkTV.setOnClickListener(view -> {
-            startActivity(SignUpActivity.intentFactory(this));
+        TextView linkTV = findViewById(R.id.sign_in_redirect);
+        linkTV.setOnClickListener(view -> {
+            startActivity(SignInActivity.intentFactory(this));
         });
     }
 }

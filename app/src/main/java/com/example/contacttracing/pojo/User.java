@@ -9,10 +9,10 @@ public class User {
 
     public User() {this.infected = false;}
 
-    public User(String uid, String email) {
+    public User(String uid, String email, boolean infected) {
         this.uid = uid;
         this.email = email;
-        this.infected = false;
+        this.infected = infected;
     }
 
     @Override
