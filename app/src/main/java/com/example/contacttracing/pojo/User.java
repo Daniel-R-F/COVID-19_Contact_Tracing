@@ -11,7 +11,7 @@ public class User {
 
     public User(String uid, String email, boolean infected) {
         this.uid = uid;
-        this.email = email;
+        this.email = email.toLowerCase();
         this.infected = infected;
     }
 
@@ -20,11 +20,11 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(uid, user.uid) && Objects.equals(email, user.email);
+        return Objects.equals(email, user.email);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(uid, email);
+        return Objects.hash(email);
     }
 }

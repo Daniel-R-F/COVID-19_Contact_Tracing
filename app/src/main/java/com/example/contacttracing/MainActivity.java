@@ -2,11 +2,12 @@ package com.example.contacttracing;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import com.example.contacttracing.pojo.User;
 import com.google.firebase.auth.FirebaseAuth;
@@ -77,5 +78,15 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("firebase", "error pulling user.");
             }
         });
+    }
+
+    /**
+     * Factory pattern provided Intent to switch to this activity.
+     *
+     * @param context current application context.
+     * @return returns activity's intent.
+     */
+    public static Intent intentFactory(Context context) {
+        return new Intent(context, MainActivity.class);
     }
 }
