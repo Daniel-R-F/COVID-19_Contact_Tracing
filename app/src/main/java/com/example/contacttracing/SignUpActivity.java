@@ -19,12 +19,17 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Objects;
 
+/**
+ * Sign up with email & password.
+ *
+ * @author Daniel Rangel Figueroa
+ */
 public class SignUpActivity extends AppCompatActivity {
     private EditText mPasswdET;
     private EditText mEmailET;
     private Button mSignUpBtn;
 
-    private  FirebaseAuth fAuth;
+    private FirebaseAuth fAuth;
 
     private boolean mValidEmail;
     private boolean mValidPasswd;
@@ -38,19 +43,10 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
 
-
     /**
-     * Factory pattern provided Intent to switch to this activity.
-     *
-     * @param context current application context.
-     * @return returns activity's intent.
+     * Initialize variables and event listeners
      */
-    public static Intent intentFactory(Context context) {
-        return new Intent(context, SignUpActivity.class);
-    }
-
-
-    private void wireDisplay(){
+    private void wireDisplay() {
         mPasswdET = findViewById(R.id.editTextTextPassword);
         mEmailET = findViewById(R.id.editTextTextEmailAddress);
         mSignUpBtn = findViewById(R.id.sign_up_btn);
@@ -64,10 +60,12 @@ public class SignUpActivity extends AppCompatActivity {
 
         mPasswdET.addTextChangedListener(uiPasswdUpdate());
 
-        mSignUpBtn.setOnClickListener(view ->registerUser());
+        mSignUpBtn.setOnClickListener(view -> registerUser());
     }
-
-    private TextWatcher uiEmailUpdate(){
+    /**
+     * Updates UI based on Email edit text input.
+     */
+    private TextWatcher uiEmailUpdate() {
         return new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -81,17 +79,19 @@ public class SignUpActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable editable) {
-                if(!mValidEmail){
+                if (!mValidEmail) {
                     mSignUpBtn.setEnabled(false);
                     mEmailET.setError("Invalid Email");
-                } else if(mValidPasswd){
+                } else if (mValidPasswd) {
                     mSignUpBtn.setEnabled(true);
                 }
             }
         };
     }
-
-    private TextWatcher uiPasswdUpdate(){
+    /**
+     * Updates UI based on password edit text input.
+     */
+    private TextWatcher uiPasswdUpdate() {
         return new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -105,40 +105,53 @@ public class SignUpActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable editable) {
-                if(!mValidPasswd) {
+                if (!mValidPasswd) {
                     mSignUpBtn.setEnabled(false);
                     mPasswdET.setError("Password must contain: upper and lower case letters, at least one number, and at least one special character");
-                } else if(mValidEmail){
+                } else if (mValidEmail) {
                     mSignUpBtn.setEnabled(true);
                 }
             }
         };
     }
 
-    private void registerUser(){
+    /**
+     * Registers users with firebase auth & adds record
+     * to "Users" document.
+     */
+    private void registerUser() {
         String email = mEmailET.getText().toString().trim();
         String passwd = mPasswdET.getText().toString();
-        fAuth.createUserWithEmailAndPassword(email,passwd)
-                .addOnCompleteListener( task -> {
-                    if (task.isSuccessful()){
+        fAuth.createUserWithEmailAndPassword(email, passwd)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
                         final String uid = Objects.requireNonNull(fAuth.getCurrentUser()).getUid();
                         User user = new User(uid, email, false);
                         FirebaseDatabase.getInstance().getReference("Users")
                                 .child(uid)
                                 .setValue(user).addOnCompleteListener(task1 -> {
-                                    if (task1.isSuccessful()){
-                                        startActivity(SignInActivity.intentFactory(this));
-                                        fAuth.signOut();
-                                        finish();
-                                    } else {
-                                        Toast.makeText(SignUpActivity.this, "ERROR", Toast.LENGTH_LONG).show();
-                                    }
+                            if (task1.isSuccessful()) {
+                                startActivity(SignInActivity.intentFactory(this));
+                                fAuth.signOut();
+                                finish();
+                            } else {
+                                Toast.makeText(SignUpActivity.this, "ERROR", Toast.LENGTH_LONG).show();
+                            }
                         });
                     } else {
                         Log.e("FIREBASE", Objects.requireNonNull(task.getResult()).toString());
-                        Toast.makeText(SignUpActivity.this,"User already exists." , Toast.LENGTH_LONG).show();
+                        Toast.makeText(SignUpActivity.this, "User already exists.", Toast.LENGTH_LONG).show();
                     }
                 });
     }
 
+    /**
+     * Factory pattern provided Intent to switch to this activity.
+     *
+     * @param context current application context.
+     * @return activity's intent.
+     */
+    public static Intent intentFactory(Context context) {
+        return new Intent(context, SignUpActivity.class);
+    }
 }

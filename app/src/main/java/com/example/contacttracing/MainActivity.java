@@ -19,6 +19,7 @@ import java.util.Objects;
 
 /**
  * Loading screen: redirects user to appropriate activity.
+ *
  * @author Daniel Rangel Figueroa
  */
 public class MainActivity extends AppCompatActivity {
@@ -36,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
 
-        if(signedIn()){
+        if (signedIn()) {
             progress.setVisibility(View.VISIBLE);
             progress.setProgress(33);
             progress.setProgress(66);
@@ -46,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
             progress.setProgress(100);
 
             startActivity(LandingActivity.intentFactory(this));
-        }else{
+        } else {
             startActivity(SignInActivity.intentFactory(this));
         }
 
@@ -69,12 +70,12 @@ public class MainActivity extends AppCompatActivity {
      *
      * @param uid User id.
      */
-    void pullUserData(final String uid){
+    void pullUserData(final String uid) {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference();
         ref.child("Users").child(uid).get().addOnCompleteListener(task -> {
-            if(task.isSuccessful()){
+            if (task.isSuccessful()) {
                 USER = Objects.requireNonNull(task.getResult()).getValue(User.class);
-            } else{
+            } else {
                 Log.e("firebase", "error pulling user.");
             }
         });
@@ -84,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
      * Factory pattern provided Intent to switch to this activity.
      *
      * @param context current application context.
-     * @return returns activity's intent.
+     * @return activity's intent.
      */
     public static Intent intentFactory(Context context) {
         return new Intent(context, MainActivity.class);

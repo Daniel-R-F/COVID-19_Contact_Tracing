@@ -18,7 +18,7 @@ public class LandingActivity extends AppCompatActivity {
      * Factory pattern provided Intent to switch to this activity.
      *
      * @param context current application context.
-     * @return returns activity's intent.
+     * @return activity's intent.
      */
     public static Intent intentFactory(Context context) {
         return new Intent(context, LandingActivity.class);
