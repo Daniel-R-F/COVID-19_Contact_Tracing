@@ -11,7 +11,7 @@
         android:id="@+id/imageView"
         android:layout_width="150dp"
         android:layout_height="150dp"
-        android:layout_marginTop="88dp"
+        android:layout_marginTop="40dp"
         android:contentDescription="@string/app_name"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
@@ -19,11 +19,12 @@
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_launcher_foreground" />
 
+
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:text="@string/app_name"
         android:textSize="20sp"
         android:textStyle="bold"
@@ -32,12 +33,11 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
-
     <EditText
         android:id="@+id/editTextTextEmailAddress"
         android:layout_width="250dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:autofillHints=""
         android:ems="10"
         android:hint="@string/email"
@@ -52,7 +52,6 @@
         android:id="@+id/editTextTextPassword"
         android:layout_width="250dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="28dp"
         android:autofillHints=""
         android:ems="10"
         android:hint="@string/password"
@@ -72,7 +71,7 @@
         android:text="@string/common_signin_button_text"
         android:textAllCaps="false"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_bias="0.502"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextTextPassword" />
 
@@ -84,24 +83,23 @@
         android:drawableEnd="@drawable/common_google_signin_btn_icon_light"
         android:text="@string/common_signin_button_text_long"
         android:textAllCaps="false"
-        app:layout_constraintBottom_toTopOf="@+id/sign_up_redirect"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/sign_in_btn"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toBottomOf="@+id/sign_in_btn" />
 
     <TextView
         android:id="@+id/sign_up_redirect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="100dp"
+        android:layout_marginTop="16dp"
         android:text="@string/sign_up_with_email"
         android:textColor="@color/link"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/sign_in_google" />
+        app:layout_constraintTop_toBottomOf="@+id/sign_in_google"
+        app:layout_constraintVertical_bias="0.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
