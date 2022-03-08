@@ -9,6 +9,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ContactTracing">
+        <meta-data
+            android:name="com.google.android.nearby.messages.API_KEY"
+            android:value="AIzaSyCamYGFPSXQmVTG0iZHg9tzfX-Vx1wQ9Ec" />
         <activity
             android:name=".SignUpActivity"
             android:exported="false" />
