@@ -1,5 +1,6 @@
 package com.example.contacttracing;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
@@ -7,22 +8,43 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.contacttracing.pojo.User;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.util.Objects;
 
 /**
- * Sign in email & password or Google.
+ * Sign in with email & password or Google.
  *
  * @author Daniel Rangel Figueroa
  */
 public class SignInActivity extends AppCompatActivity {
+    private static final int RC_SIGN_IN = 15;
     private EditText mPasswdET;
     private EditText mEmailET;
     private Button mSignInBtn;
+
+    private FirebaseAuth fAuth;
+    private GoogleSignInClient mGsiCl;
+
 
     private boolean mValidEmail;
     private boolean mValidPasswd;
@@ -39,22 +61,32 @@ public class SignInActivity extends AppCompatActivity {
      * Factory pattern provided Intent to switch to this activity.
      *
      * @param context current application context.
-     * @return returns activity's intent.
+     * @return activity's intent.
      */
     public static Intent intentFactory(Context context) {
         return new Intent(context, SignInActivity.class);
     }
 
+    /**
+     * Initialize variables and event listeners
+     */
     private void wireDisplay() {
+        fAuth = FirebaseAuth.getInstance();
         mPasswdET = findViewById(R.id.editTextTextPassword);
         mEmailET = findViewById(R.id.editTextTextEmailAddress);
         mSignInBtn = findViewById(R.id.sign_in_btn);
+        Button gsiBtn = findViewById(R.id.sign_in_google);
+
+        GoogleSignInOptions mGsiOp = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+        mGsiCl = GoogleSignIn.getClient(this, mGsiOp);
+
+
         TextView mLinkTV = findViewById(R.id.sign_up_redirect);
 
-        mLinkTV.setOnClickListener(view -> {
-            startActivity(SignUpActivity.intentFactory(this));
-            finish();
-        });
+        mLinkTV.setOnClickListener(view -> startActivity(SignUpActivity.intentFactory(this)));
 
 
         mEmailET.addTextChangedListener(uiEmailUpdate());
@@ -63,10 +95,13 @@ public class SignInActivity extends AppCompatActivity {
 
         mSignInBtn.setOnClickListener(view -> signIn());
 
+        gsiBtn.setOnClickListener(view -> googleSignIn());
 
     }
 
-
+    /**
+     * Updates UI based on Email edit text input.
+     */
     private TextWatcher uiEmailUpdate() {
         return new TextWatcher() {
             @Override
@@ -90,7 +125,9 @@ public class SignInActivity extends AppCompatActivity {
             }
         };
     }
-
+    /**
+     * Updates UI based on password edit text input.
+     */
     private TextWatcher uiPasswdUpdate() {
         return new TextWatcher() {
             @Override
@@ -114,10 +151,13 @@ public class SignInActivity extends AppCompatActivity {
         };
     }
 
+    /**
+     * Sign in with Email and password.
+     */
     private void signIn() {
         String email = mEmailET.getText().toString().trim();
         String passwd = mPasswdET.getText().toString();
-        FirebaseAuth fAuth = FirebaseAuth.getInstance();
+
         fAuth.signInWithEmailAndPassword(email, passwd).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 startActivity(MainActivity.intentFactory(this));
@@ -125,5 +165,86 @@ public class SignInActivity extends AppCompatActivity {
             } else
                 Toast.makeText(SignInActivity.this, "Unable to Sign in. Check credentials.", Toast.LENGTH_SHORT).show();
         });
+    }
+
+    /**
+     * Starts sign in with google intent.
+     */
+    private void googleSignIn() {
+        Intent signInIntent = mGsiCl.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_SIGN_IN) {
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            try {
+                GoogleSignInAccount account = task.getResult(ApiException.class);
+                Log.d("Firebase", "firebaseAuthWithGoogle:" + account.getId());
+                firebaseAuthGoogle(account.getIdToken());
+            } catch (ApiException e) {
+                e.printStackTrace();
+                Toast.makeText(this, Objects.requireNonNull(task.getException()).toString(), Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    /**
+     * Registers users to firebase auth.
+     * @param tokenId Google account token id
+     */
+    private void firebaseAuthGoogle(String tokenId) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(tokenId, null);
+        fAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        Log.d("Firebase", "signInWithCredential:success");
+                        FirebaseUser user = fAuth.getCurrentUser();
+                        assert user != null;
+                        signIn(user.getUid(), user.getEmail());
+                    } else {
+                        // If sign in fails, display a message to the user.
+                        Log.w("Firebase", "signInWithCredential:failure", task.getException());
+                    }
+                });
+
+    }
+
+    /**
+     * Adds User record to the "Users" document if
+     * it doesn't exist.
+     * @param uid User id from firebase auth.
+     * @param email Google account email.
+     */
+    private void signIn(String uid, String email) {
+        FirebaseDatabase db = FirebaseDatabase.getInstance();
+        DatabaseReference ref = db.getReference("Users").child(uid);
+        ref.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DataSnapshot snapshot = task.getResult();
+                if (!snapshot.exists()) {
+                    User user = new User(uid, email, false);
+                    ref.setValue(user).addOnCompleteListener(task1 -> {
+                        if (task1.isSuccessful()) {
+                            startActivity(MainActivity.intentFactory(this));
+                            finish();
+                        } else {
+                            fAuth.signOut();
+                            Toast.makeText(this, "Could not sign you in.1", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } else {
+                    startActivity(MainActivity.intentFactory(this));
+                    finish();
+                }
+            } else {
+                fAuth.signOut();
+                Toast.makeText(this, "Could not sign you in.2", Toast.LENGTH_LONG).show();
+            }
+        });
+
+
     }
 }

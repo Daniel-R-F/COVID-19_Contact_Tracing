@@ -19,6 +19,11 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Objects;
 
+/**
+ * Sign up with email & password.
+ *
+ * @author Daniel Rangel Figueroa
+ */
 public class SignUpActivity extends AppCompatActivity {
     private EditText mPasswdET;
     private EditText mEmailET;
@@ -39,16 +44,8 @@ public class SignUpActivity extends AppCompatActivity {
 
 
     /**
-     * Factory pattern provided Intent to switch to this activity.
-     *
-     * @param context current application context.
-     * @return returns activity's intent.
+     * Initialize variables and event listeners
      */
-    public static Intent intentFactory(Context context) {
-        return new Intent(context, SignUpActivity.class);
-    }
-
-
     private void wireDisplay() {
         mPasswdET = findViewById(R.id.editTextTextPassword);
         mEmailET = findViewById(R.id.editTextTextEmailAddress);
@@ -57,11 +54,7 @@ public class SignUpActivity extends AppCompatActivity {
 
 
         TextView linkTV = findViewById(R.id.sign_in_redirect);
-        linkTV.setOnClickListener(view -> {
-                    startActivity(SignInActivity.intentFactory(this));
-                    finish();
-                }
-        );
+        linkTV.setOnClickListener(view -> startActivity(SignInActivity.intentFactory(this)));
 
         mEmailET.addTextChangedListener(uiEmailUpdate());
 
@@ -69,7 +62,9 @@ public class SignUpActivity extends AppCompatActivity {
 
         mSignUpBtn.setOnClickListener(view -> registerUser());
     }
-
+    /**
+     * Updates UI based on Email edit text input.
+     */
     private TextWatcher uiEmailUpdate() {
         return new TextWatcher() {
             @Override
@@ -93,7 +88,9 @@ public class SignUpActivity extends AppCompatActivity {
             }
         };
     }
-
+    /**
+     * Updates UI based on password edit text input.
+     */
     private TextWatcher uiPasswdUpdate() {
         return new TextWatcher() {
             @Override
@@ -118,6 +115,10 @@ public class SignUpActivity extends AppCompatActivity {
         };
     }
 
+    /**
+     * Registers users with firebase auth & adds record
+     * to "Users" document.
+     */
     private void registerUser() {
         String email = mEmailET.getText().toString().trim();
         String passwd = mPasswdET.getText().toString();
@@ -144,4 +145,13 @@ public class SignUpActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Factory pattern provided Intent to switch to this activity.
+     *
+     * @param context current application context.
+     * @return activity's intent.
+     */
+    public static Intent intentFactory(Context context) {
+        return new Intent(context, SignUpActivity.class);
+    }
 }
