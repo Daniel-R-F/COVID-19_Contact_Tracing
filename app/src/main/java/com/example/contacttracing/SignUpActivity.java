@@ -131,6 +131,11 @@ public class SignUpActivity extends AppCompatActivity {
                                 .child(uid)
                                 .setValue(user).addOnCompleteListener(task1 -> {
                             if (task1.isSuccessful()) {
+                                fAuth.getCurrentUser().sendEmailVerification();
+                                Toast toast = Toast.makeText(this, "An email was sent to " +
+                                        email + "\n Follow the link " +
+                                        "to verify your account", Toast.LENGTH_LONG);
+                                toast.show();
                                 startActivity(SignInActivity.intentFactory(this));
                                 fAuth.signOut();
                                 finish();
