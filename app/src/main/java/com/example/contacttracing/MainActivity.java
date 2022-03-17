@@ -30,13 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth fAuth;
     private ProgressBar mProgress;
 
-    private String mEmail;
-
-
-    Toast resent_toast;
-    Toast error_toast;
-
-    AlertDialog.Builder builder;
+    private AlertDialog.Builder mBuilder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,15 +41,12 @@ public class MainActivity extends AppCompatActivity {
         mProgress = findViewById(R.id.progressBar);
         fAuth = FirebaseAuth.getInstance();
 
-        resent_toast = Toast.makeText(this, "Email resent", Toast.LENGTH_LONG);
-        error_toast = Toast.makeText(this, "Try again", Toast.LENGTH_LONG);
 
         if (signedIn()) {
-            mEmail = Objects.requireNonNull(fAuth.getCurrentUser()).getEmail();
-            initBuilder();
             validateSignIn();
         } else {
             startActivity(SignInActivity.intentFactory(this));
+            finish();
         }
 
     }
@@ -95,47 +86,61 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Initializes mBuilder.
+     * Used to require Email verification before log in.
+     */
     private void initBuilder() {
-        builder = new AlertDialog.Builder(this);
-        builder.setMessage("An email was sent to " +
-                mEmail + "\n Follow the link " +
+        Toast resent_toast = Toast.makeText(this, "Email resent", Toast.LENGTH_LONG);
+        String email = Objects.requireNonNull(fAuth.getCurrentUser()).getEmail();
+        mBuilder = new AlertDialog.Builder(this);
+        mBuilder.setCancelable(false);
+        mBuilder.setMessage("An email was sent to " +
+                email + "\nFollow the link " +
                 "to verify your account");
 
-        builder.setPositiveButton("Done", (dialogInterface, i) -> {
+        mBuilder.setPositiveButton("Done", (dialogInterface, i) -> {
             dialogInterface.cancel();
             validateSignIn();
         });
 
-        builder.setNegativeButton("Resend", (dialogInterface, i) -> {
-            Objects.requireNonNull(fAuth.getCurrentUser()).sendEmailVerification()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful())
-                            resent_toast.show();
-                        else
-                            error_toast.show();
+        mBuilder.setNegativeButton("Resend", (dialogInterface, i) -> Objects.requireNonNull(fAuth.getCurrentUser()).sendEmailVerification()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful())
+                        resent_toast.show();
+                    else {
+                        String error = Objects.requireNonNull(task.getException()).getMessage();
+                        Log.e("FIREBASE", error);
+                        Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show();
+                    }
 
-                        dialogInterface.cancel();
-                        validateSignIn();
-                    });
-        });
+                    dialogInterface.cancel();
+                    validateSignIn();
+                }));
 
-        builder.setNeutralButton("Exit", (dialogInterface, i) -> {
+        mBuilder.setNeutralButton("Sign out", (dialogInterface, i) -> {
             fAuth.signOut();
             startActivity(SignInActivity.intentFactory(MainActivity.this));
             finish();
         });
 
-        builder.create();
+        mBuilder.create();
     }
 
+    /**
+     * Checks if Email has been verified. The user is prompt to do so if
+     * it hasn't been verified.
+     */
     private void validateSignIn() {
         Objects.requireNonNull(fAuth.getCurrentUser()).reload().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 if (fAuth.getCurrentUser().isEmailVerified()) {
                     mProgress.setProgress(66);
                     pullUserData(fAuth.getUid());
-                } else
-                    builder.show();
+                } else {
+                    initBuilder();
+                    mBuilder.show();
+                }
             } else
                 validateSignIn();
         });

@@ -1,16 +1,22 @@
 package com.example.contacttracing;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.constraintlayout.widget.ConstraintSet;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,6 +50,7 @@ public class SignInActivity extends AppCompatActivity {
 
     private FirebaseAuth fAuth;
     private GoogleSignInClient mGsiCl;
+    private AlertDialog.Builder mBuilder;
 
 
     private boolean mValidEmail;
@@ -74,6 +81,7 @@ public class SignInActivity extends AppCompatActivity {
         fAuth = FirebaseAuth.getInstance();
         mPasswdET = findViewById(R.id.editTextTextPassword);
         mEmailET = findViewById(R.id.editTextTextEmailAddress);
+
         mSignInBtn = findViewById(R.id.sign_in_btn);
         Button gsiBtn = findViewById(R.id.sign_in_google);
 
@@ -83,10 +91,17 @@ public class SignInActivity extends AppCompatActivity {
                 .build();
         mGsiCl = GoogleSignIn.getClient(this, mGsiOp);
 
-
+        TextView forgotTV = findViewById(R.id.forgot_password_dialog);
         TextView mLinkTV = findViewById(R.id.sign_up_redirect);
 
-        mLinkTV.setOnClickListener(view -> startActivity(SignUpActivity.intentFactory(this)));
+        mLinkTV.setOnClickListener(view -> {
+            startActivity(SignUpActivity.intentFactory(this));
+            finish();
+        });
+        forgotTV.setOnClickListener(view -> {
+            initBuilder();
+            mBuilder.show();
+        });
 
 
         mEmailET.addTextChangedListener(uiEmailUpdate());
@@ -94,6 +109,7 @@ public class SignInActivity extends AppCompatActivity {
         mPasswdET.addTextChangedListener(uiPasswdUpdate());
 
         mSignInBtn.setOnClickListener(view -> signIn());
+
 
         gsiBtn.setOnClickListener(view -> googleSignIn());
 
@@ -125,8 +141,9 @@ public class SignInActivity extends AppCompatActivity {
             }
         };
     }
+
     /**
-     * Updates UI based on password edit text input.
+     * Updates UI based on password edit text input.signIn
      */
     private TextWatcher uiPasswdUpdate() {
         return new TextWatcher() {
@@ -162,8 +179,11 @@ public class SignInActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 startActivity(MainActivity.intentFactory(this));
                 finish();
-            } else
-                Toast.makeText(SignInActivity.this, "Unable to Sign in. Check credentials.", Toast.LENGTH_SHORT).show();
+            } else {
+                String error = Objects.requireNonNull(task.getException()).getMessage();
+                Log.e("FIREBASE", error);
+                Toast.makeText(SignInActivity.this, error, Toast.LENGTH_LONG).show();
+            }
         });
     }
 
@@ -179,20 +199,25 @@ public class SignInActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_SIGN_IN) {
-            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            try {
-                GoogleSignInAccount account = task.getResult(ApiException.class);
-                Log.d("Firebase", "firebaseAuthWithGoogle:" + account.getId());
-                firebaseAuthGoogle(account.getIdToken());
-            } catch (ApiException e) {
-                e.printStackTrace();
-                Toast.makeText(this, Objects.requireNonNull(task.getException()).toString(), Toast.LENGTH_LONG).show();
+            if (resultCode == Activity.RESULT_OK) {
+                Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+                try {
+                    GoogleSignInAccount account = task.getResult(ApiException.class);
+                    Log.d("Firebase", "firebaseAuthWithGoogle:" + account.getId());
+                    firebaseAuthGoogle(account.getIdToken());
+                } catch (ApiException e) {
+                    if (!task.isCanceled()) {
+                        e.printStackTrace();
+                        Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                }
             }
         }
     }
 
     /**
      * Registers users to firebase auth.
+     *
      * @param tokenId Google account token id
      */
     private void firebaseAuthGoogle(String tokenId) {
@@ -203,7 +228,7 @@ public class SignInActivity extends AppCompatActivity {
                         Log.d("Firebase", "signInWithCredential:success");
                         FirebaseUser user = fAuth.getCurrentUser();
                         assert user != null;
-                        signIn(user.getUid(), user.getEmail());
+                        addUserRecord(user.getUid(), user.getEmail());
                     } else {
                         // If sign in fails, display a message to the user.
                         Log.w("Firebase", "signInWithCredential:failure", task.getException());
@@ -213,12 +238,12 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     /**
-     * Adds User record to the "Users" document if
-     * it doesn't exist.
-     * @param uid User id from firebase auth.
+     * Adds User record when google sign in is used.
+     *
+     * @param uid   User id from firebase auth.
      * @param email Google account email.
      */
-    private void signIn(String uid, String email) {
+    private void addUserRecord(String uid, String email) {
         FirebaseDatabase db = FirebaseDatabase.getInstance();
         DatabaseReference ref = db.getReference("Users").child(uid);
         ref.get().addOnCompleteListener(task -> {
@@ -232,7 +257,7 @@ public class SignInActivity extends AppCompatActivity {
                             finish();
                         } else {
                             fAuth.signOut();
-                            Toast.makeText(this, "Could not sign you in.1", Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, R.string.error, Toast.LENGTH_LONG).show();
                         }
                     });
                 } else {
@@ -241,10 +266,55 @@ public class SignInActivity extends AppCompatActivity {
                 }
             } else {
                 fAuth.signOut();
-                Toast.makeText(this, "Could not sign you in.2", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, R.string.error, Toast.LENGTH_LONG).show();
             }
         });
+    }
 
+    /**
+     * Initializes mBuilder with an EditText.
+     * Used as a "reset password" form.
+     */
+    private void initBuilder() {
+        mBuilder = new AlertDialog.Builder(this);
+        Toast success_toast = Toast.makeText(this, "Follow the link sent to your Email to reset your password", Toast.LENGTH_LONG);
 
+        final TextView label = new TextView(this);
+        label.setText("Email: ");
+        label.setTextSize(16);
+
+        final EditText email_ET = new EditText(this);
+        email_ET.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        email_ET.requestFocus();
+
+        LinearLayout linearLayout;
+        linearLayout = new LinearLayout(this);
+        linearLayout.setOrientation(LinearLayout.HORIZONTAL);
+        linearLayout.setPadding(75, 75, 5, 5);
+        linearLayout.addView(label);
+        linearLayout.addView(email_ET);
+
+        mBuilder.setCancelable(false);
+        mBuilder.setTitle("Reset password");
+        mBuilder.setView(linearLayout);
+
+        mBuilder.setPositiveButton("Send", (dialogInterface, i) -> {
+            fAuth.sendPasswordResetEmail(email_ET.getText().toString()).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    success_toast.show();
+                } else {
+                    String error = Objects.requireNonNull(task.getException()).getMessage();
+                    Log.e("FIREBASE", error);
+                    Toast.makeText(SignInActivity.this, error, Toast.LENGTH_LONG).show();
+                }
+            });
+            dialogInterface.cancel();
+        });
+
+        mBuilder.setNeutralButton("Close", (dialogInterface, i) -> {
+            dialogInterface.cancel();
+        });
+
+        mBuilder.create();
     }
 }
