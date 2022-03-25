@@ -54,7 +54,10 @@ public class SignUpActivity extends AppCompatActivity {
 
 
         TextView linkTV = findViewById(R.id.sign_in_redirect);
-        linkTV.setOnClickListener(view -> startActivity(SignInActivity.intentFactory(this)));
+        linkTV.setOnClickListener(view -> {
+            startActivity(SignInActivity.intentFactory(this));
+            finish();
+        });
 
         mEmailET.addTextChangedListener(uiEmailUpdate());
 
@@ -62,6 +65,7 @@ public class SignUpActivity extends AppCompatActivity {
 
         mSignUpBtn.setOnClickListener(view -> registerUser());
     }
+
     /**
      * Updates UI based on Email edit text input.
      */
@@ -88,6 +92,7 @@ public class SignUpActivity extends AppCompatActivity {
             }
         };
     }
+
     /**
      * Updates UI based on password edit text input.
      */
@@ -116,8 +121,8 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     /**
-     * Registers users with firebase auth & adds record
-     * to "Users" document.
+     * Registers users with firebase auth & adds record to "Users" document.
+     * Email is sent to verify account.
      */
     private void registerUser() {
         String email = mEmailET.getText().toString().trim();
@@ -131,16 +136,21 @@ public class SignUpActivity extends AppCompatActivity {
                                 .child(uid)
                                 .setValue(user).addOnCompleteListener(task1 -> {
                             if (task1.isSuccessful()) {
-                                startActivity(SignInActivity.intentFactory(this));
-                                fAuth.signOut();
-                                finish();
+                                fAuth.getCurrentUser()
+                                        .sendEmailVerification()
+                                        .addOnCompleteListener(task2 -> {
+                                            startActivity(MainActivity.intentFactory(SignUpActivity.this));
+                                            finish();
+                                        });
+
                             } else {
-                                Toast.makeText(SignUpActivity.this, "ERROR", Toast.LENGTH_LONG).show();
+                                Toast.makeText(SignUpActivity.this, R.string.error, Toast.LENGTH_LONG).show();
                             }
                         });
                     } else {
-                        Log.e("FIREBASE", Objects.requireNonNull(task.getResult()).toString());
-                        Toast.makeText(SignUpActivity.this, "User already exists.", Toast.LENGTH_LONG).show();
+                        String error = Objects.requireNonNull(task.getException()).getMessage();
+                        Log.e("FIREBASE", error);
+                        Toast.makeText(SignUpActivity.this, error, Toast.LENGTH_LONG).show();
                     }
                 });
     }
