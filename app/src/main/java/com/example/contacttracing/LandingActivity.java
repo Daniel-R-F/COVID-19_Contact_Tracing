@@ -7,7 +7,6 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -53,8 +52,8 @@ public class LandingActivity extends AppCompatActivity {
         });
 
         // check if location permissions are granted
-        if (LocationLogging.hasPermissions(this)){
-            startService(new Intent(this, LocationLogging.class));
+        if (ContactTracing.hasPermissions(this)){
+            startService(new Intent(this, ContactTracing.class));
         }else
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_LOCATION);
 
@@ -66,7 +65,7 @@ public class LandingActivity extends AppCompatActivity {
         switch (requestCode){
             case PERMISSION_LOCATION:
                 if(grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                    startService(new Intent(this, LocationLogging.class));
+                    startService(new Intent(this, ContactTracing.class));
                 }else{
                     Toast.makeText(this, R.string.permission_denied, Toast.LENGTH_LONG).show();
                     finish();

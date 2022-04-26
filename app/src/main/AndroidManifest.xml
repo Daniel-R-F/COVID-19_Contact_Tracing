@@ -14,7 +14,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ContactTracing">
     
-        <service android:name=".LocationLogging"
+        <service android:name=".ContactTracing"
             android:enabled="true"/>
         <activity
             android:name=".SignUpActivity"
