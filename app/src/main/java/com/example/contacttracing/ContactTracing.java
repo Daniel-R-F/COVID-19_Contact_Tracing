@@ -1,7 +1,12 @@
 package com.example.contacttracing;
 
+import static com.example.contacttracing.App.CHANNEL_ID;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Application;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -15,24 +20,40 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 
+import com.example.contacttracing.pojo.Contact;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.nearby.Nearby;
+import com.google.android.gms.nearby.messages.Message;
+import com.google.android.gms.nearby.messages.MessageListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ServerValue;
+import com.google.firebase.firestore.FieldValue;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /*
-    @todo - The service should run all the time. Not just when app is in focus.
-    @todo - Get physical address from coordinates using Geocoder.
+    @ todo - Contact tracing logic
  */
 public class ContactTracing extends Service {
-    private static final String TAG = "LocationLogging Service";
 
+    private static final String TAG = "Tracing Service";
+    static HashMap<String, Boolean> connections;
+    static HashMap<String, String> recordIds;
+    private byte rank;
     private String mAddress;
+    private FirebaseAuth fAuth;
+    private Message mMessage;
+    private MessageListener mMessageListener;
 
     static boolean hasPermissions(Context context) {
         return ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
@@ -41,9 +62,70 @@ public class ContactTracing extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        Map<String, String> value = ServerValue.TIMESTAMP;
+        connections = new HashMap<>();
+        recordIds = new HashMap<>();
+        fAuth = FirebaseAuth.getInstance();
 
-        initGPS();
+        mMessageListener = new MessageListener() {
+            @Override
+            public void onFound(@NonNull Message message) {
+                super.onFound(message);
+                String contactUid = new String(message.getContent());
+                // TEST
+                connections.put(contactUid, true);
+                LandingActivity.msgTV.setText(contactUid);
+                // TEST
+                initGPS();
+                Contact contact = new Contact(contactUid, mAddress);
+                Utils.registerContact(fAuth.getUid(), contact);
+            }
+
+            @Override
+            public void onLost(@NonNull Message message) {
+                super.onLost(message);
+                String contactUid = new String(message.getContent());
+                connections.replace(contactUid, false);
+
+                Utils.endContact(fAuth.getUid(), contactUid);
+            }
+        };
+
+        mMessage = new Message(fAuth.getUid().getBytes());
+        Nearby.getMessagesClient(this).publish(mMessage);
+        Nearby.getMessagesClient(this).subscribe(mMessageListener);
+
+//        initGPS();
     }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
+                notificationIntent, 0);
+
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Contact Tracing")
+                .setContentText("Contact Tracing running in background.")
+                .setSmallIcon(R.drawable.ic_logo_nearby_48dp)
+                .setContentIntent(pendingIntent)
+                .build();
+        startForeground(1, notification);
+        return START_STICKY;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
 
     // Suppressed b/c permission is granted in LandingActivity.
     @SuppressLint("MissingPermission")
@@ -95,11 +177,5 @@ public class ContactTracing extends Service {
         String coordinates = "Longitude: " + location.getLongitude() + "\nLatitude: " +
                 location.getLatitude();
         LandingActivity.test_location.setText(coordinates);
-    }
-
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
     }
 }
