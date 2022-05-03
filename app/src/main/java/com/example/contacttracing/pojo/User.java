@@ -3,16 +3,19 @@ package com.example.contacttracing.pojo;
 import java.util.Objects;
 
 public class User {
-    public String uid;
     public String email;
     public boolean infected;
+    public boolean exposed;
 
-    public User() {this.infected = false;}
+    public User() {
+        this.infected = false;
+        this.exposed = false;
+    }
 
-    public User(String uid, String email, boolean infected) {
-        this.uid = uid;
+    public User(String email) {
         this.email = email.toLowerCase();
-        this.infected = infected;
+        this.infected = false;
+        this.exposed = false;
     }
 
     @Override
