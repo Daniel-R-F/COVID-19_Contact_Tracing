@@ -7,4 +7,9 @@
     <string name="forgot_password">Forgot Password?</string>
     <string name="bullet">•</string>
     <string name="permission_denied">This application requires location permissions to function.</string>
+    <string name="yes">Yes</string>
+    <string name="negative_label">Have you tested positive for Covid-19?</string>
+    <string name="positive_label">Are you no longer infected with Covid-19?</string>
+    <string name="warning">Warning</string>
+    <string name="no">No</string>
 </resources>
