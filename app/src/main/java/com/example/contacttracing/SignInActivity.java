@@ -3,8 +3,6 @@ package com.example.contacttracing;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.constraintlayout.widget.ConstraintSet;
 
 import android.app.Activity;
 import android.content.Context;
@@ -20,7 +18,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.contacttracing.pojo.User;
+import com.example.contacttracing.firebase.User;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -250,7 +248,7 @@ public class SignInActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 DataSnapshot snapshot = task.getResult();
                 if (!snapshot.exists()) {
-                    User user = new User(uid, email, false);
+                    User user = new User(email);
                     ref.setValue(user).addOnCompleteListener(task1 -> {
                         if (task1.isSuccessful()) {
                             startActivity(MainActivity.intentFactory(this));

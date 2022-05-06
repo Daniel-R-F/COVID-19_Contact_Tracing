@@ -1,11 +1,17 @@
 package com.example.contacttracing;
 
+import android.util.Log;
 import android.util.Patterns;
 
+import com.example.contacttracing.firebase.Contact;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
+
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class Utils {
-
 
     public static boolean validateEmail(String Email) {
         return Patterns.EMAIL_ADDRESS.matcher(Email).matches();
@@ -23,4 +29,6 @@ public class Utils {
         );
         return passwd_regex.matcher(passwd).matches();
     }
+
+
 }
