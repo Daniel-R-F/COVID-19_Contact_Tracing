@@ -4,7 +4,6 @@ import static com.example.contacttracing.App.CHANNEL_ID;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Application;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -14,6 +13,7 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -22,7 +22,8 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 
-import com.example.contacttracing.pojo.Contact;
+import com.example.contacttracing.firebase.Contact;
+import com.example.contacttracing.firebase.UtilsDB;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -31,15 +32,15 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.messages.Message;
 import com.google.android.gms.nearby.messages.MessageListener;
+import com.google.android.gms.nearby.messages.Strategy;
+import com.google.android.gms.nearby.messages.SubscribeOptions;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ServerValue;
-import com.google.firebase.firestore.FieldValue;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /*
     @ todo - Contact tracing logic
@@ -47,8 +48,8 @@ import java.util.Map;
 public class ContactTracing extends Service {
 
     private static final String TAG = "Tracing Service";
+    public static HashMap<String, String> recordIds;
     static HashMap<String, Boolean> connections;
-    static HashMap<String, String> recordIds;
     private byte rank;
     private String mAddress;
     private FirebaseAuth fAuth;
@@ -62,52 +63,88 @@ public class ContactTracing extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Map<String, String> value = ServerValue.TIMESTAMP;
         connections = new HashMap<>();
         recordIds = new HashMap<>();
         fAuth = FirebaseAuth.getInstance();
+
+        Strategy strategy = new Strategy.Builder()
+                .setDistanceType(Strategy.DISTANCE_TYPE_EARSHOT)
+                .setDiscoveryMode(Strategy.DISCOVERY_MODE_DEFAULT)
+                .build();
+
+        SubscribeOptions options = new SubscribeOptions.Builder()
+                .setStrategy(strategy)
+                .build();
+
 
         mMessageListener = new MessageListener() {
             @Override
             public void onFound(@NonNull Message message) {
                 super.onFound(message);
                 String contactUid = new String(message.getContent());
+                Log.d(TAG, "onFound: " + contactUid);
                 // TEST
                 connections.put(contactUid, true);
-                LandingActivity.msgTV.setText(contactUid);
+//                LandingActivity.msgTV.setText(contactUid);
                 // TEST
                 initGPS();
-                Contact contact = new Contact(contactUid, mAddress);
-                Utils.registerContact(fAuth.getUid(), contact);
+                Contact contact = new Contact(mAddress);
+                UtilsDB.registerContact(fAuth.getUid(), contactUid, contact);
             }
 
             @Override
             public void onLost(@NonNull Message message) {
                 super.onLost(message);
                 String contactUid = new String(message.getContent());
+                Log.d(TAG, "onLost: " + contactUid);
                 connections.replace(contactUid, false);
 
-                Utils.endContact(fAuth.getUid(), contactUid);
+                UtilsDB.endContact(fAuth.getUid(), contactUid);
             }
+
         };
 
         mMessage = new Message(fAuth.getUid().getBytes());
-        Nearby.getMessagesClient(this).publish(mMessage);
-        Nearby.getMessagesClient(this).subscribe(mMessageListener);
 
-//        initGPS();
+        Nearby.getMessagesClient(this).subscribe(mMessageListener, options);
+
+        Nearby.getMessagesClient(this).publish(mMessage);
+
+
+        Handler handler = new Handler();
+        Timer timer = new Timer();
+
+        TimerTask refresh = new TimerTask() {
+            @Override
+            public void run() {
+                    handler.post(() -> {
+                        try{
+                            Nearby.getMessagesClient(ContactTracing.this).unsubscribe(mMessageListener);
+                            Nearby.getMessagesClient(ContactTracing.this).unpublish(mMessage);
+
+                            Nearby.getMessagesClient(ContactTracing.this).subscribe(mMessageListener, options);
+                            Nearby.getMessagesClient(ContactTracing.this).publish(mMessage);
+                        }catch (Exception e) {
+                            Log.e(TAG, "refresh run: " + e.getMessage());
+                        }
+                    });
+
+            }
+        };
+
+        timer.schedule(refresh, UtilsDB.FIVE_MIN, UtilsDB.FIVE_MIN);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        Intent notificationIntent = new Intent(this, MainActivity.class);
+        Intent notificationIntent = new Intent(this, LandingActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
                 notificationIntent, 0);
 
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Contact Tracing")
-                .setContentText("Contact Tracing running in background.")
+                .setContentText("Scanning for nearby devices.")
                 .setSmallIcon(R.drawable.ic_logo_nearby_48dp)
                 .setContentIntent(pendingIntent)
                 .build();
@@ -176,6 +213,6 @@ public class ContactTracing extends Service {
     private void updateUI(Location location) {
         String coordinates = "Longitude: " + location.getLongitude() + "\nLatitude: " +
                 location.getLatitude();
-        LandingActivity.test_location.setText(coordinates);
+//        LandingActivity.test_location.setText(coordinates);
     }
 }

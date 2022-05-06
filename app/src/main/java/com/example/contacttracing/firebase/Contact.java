@@ -1,4 +1,4 @@
-package com.example.contacttracing.pojo;
+package com.example.contacttracing.firebase;
 
 import com.google.firebase.database.ServerValue;
 
@@ -7,14 +7,16 @@ public class Contact {
     private Object endTime;
 
     private String location;
-    private String contactUid;
+
+    private long offTime;
 
 
 
-    public Contact(String contactUid, String location) {
+    public Contact(String location) {
         startTime = ServerValue.TIMESTAMP;
+        endTime = null;
+        offTime = 0;
 
-        this.contactUid = contactUid;
         this.location = location;
     }
 
@@ -42,11 +44,11 @@ public class Contact {
         this.location = location;
     }
 
-    public String getContactUid() {
-        return contactUid;
+    public long getOffTime() {
+        return offTime;
     }
 
-    public void setContactUid(String contactUid) {
-        this.contactUid = contactUid;
+    public void setOffTime(long offTime) {
+        this.offTime = offTime;
     }
 }

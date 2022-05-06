@@ -1,17 +1,19 @@
 package com.example.contacttracing;
 
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.example.contacttracing.pojo.User;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
@@ -25,12 +27,22 @@ import java.util.Objects;
  * @author Daniel Rangel Figueroa
  */
 public class MainActivity extends AppCompatActivity {
-    public static User USER;
+    private static final int PERMISSION_LOCATION = 15;
 
     private FirebaseAuth fAuth;
     private ProgressBar mProgress;
 
     private AlertDialog.Builder mBuilder;
+
+    /**
+     * Factory pattern provided Intent to switch to this activity.
+     *
+     * @param context current application context.
+     * @return activity's intent.
+     */
+    public static Intent intentFactory(Context context) {
+        return new Intent(context, MainActivity.class);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,16 +53,25 @@ public class MainActivity extends AppCompatActivity {
         mProgress = findViewById(R.id.progressBar);
         fAuth = FirebaseAuth.getInstance();
 
-
-        if (signedIn()) {
-            validateSignIn();
-        } else {
-            startActivity(SignInActivity.intentFactory(this));
-            finish();
-        }
-
+        requestPermission();
     }
 
+    private void signIn() {
+        if (signedIn()) {
+            Objects.requireNonNull(fAuth.getCurrentUser()).reload().addOnCompleteListener(task -> {
+                if (task.isSuccessful())
+                    if (signedIn()) {
+                        validateSignIn();
+                    } else {
+                        startActivity(SignInActivity.intentFactory(MainActivity.this));
+                        finish();
+                    }
+            });
+        } else {
+            startActivity(SignInActivity.intentFactory(MainActivity.this));
+            finish();
+        }
+    }
 
     /**
      * Checks to see if user is signed in.
@@ -77,11 +98,12 @@ public class MainActivity extends AppCompatActivity {
         ref.child("Users").child(uid).get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 mProgress.setProgress(100);
-                USER = Objects.requireNonNull(task.getResult()).getValue(User.class);
                 startActivity(LandingActivity.intentFactory(MainActivity.this));
                 finish();
             } else {
-                Log.e("firebase", "error pulling user.");
+                String error = Objects.requireNonNull(task.getException()).getMessage();
+                Log.e("FIREBASE", error);
+                Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -137,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
                 if (fAuth.getCurrentUser().isEmailVerified()) {
                     mProgress.setProgress(66);
                     pullUserData(fAuth.getUid());
+                    startService(new Intent(this, ContactTracing.class));
                 } else {
                     initBuilder();
                     mBuilder.show();
@@ -148,13 +171,25 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    /**
-     * Factory pattern provided Intent to switch to this activity.
-     *
-     * @param context current application context.
-     * @return activity's intent.
-     */
-    public static Intent intentFactory(Context context) {
-        return new Intent(context, MainActivity.class);
+    private void requestPermission() {
+        if (ContactTracing.hasPermissions(this)) {
+            signIn();
+        } else
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_LOCATION);
+
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_LOCATION) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                signIn();
+            } else {
+                Toast.makeText(this, R.string.permission_denied, Toast.LENGTH_LONG).show();
+                finish();
+            }
+        }
+    }
+
 }

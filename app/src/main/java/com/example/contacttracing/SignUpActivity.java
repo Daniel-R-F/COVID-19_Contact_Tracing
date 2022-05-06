@@ -13,7 +13,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.contacttracing.pojo.User;
+import com.example.contacttracing.firebase.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -131,7 +131,7 @@ public class SignUpActivity extends AppCompatActivity {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         final String uid = Objects.requireNonNull(fAuth.getCurrentUser()).getUid();
-                        User user = new User(uid, email, false);
+                        User user = new User(email);
                         FirebaseDatabase.getInstance().getReference("Users")
                                 .child(uid)
                                 .setValue(user).addOnCompleteListener(task1 -> {
