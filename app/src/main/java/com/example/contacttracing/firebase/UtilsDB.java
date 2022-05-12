@@ -17,8 +17,8 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class UtilsDB {
-    public static final long FIVE_MIN = 300000;
-    private static final String TAG = "Firebase";
+    public static final long TEN_MIN = 600000;
+    public static final String TAG = "Firebase";
 
     public static void registerContact(String uid, String contactUid, Contact contact) {
         String dbPath = String.format("Users/%s/Contacts/%s", uid, contactUid);
@@ -48,6 +48,7 @@ public class UtilsDB {
 
                     Date startTime = new Date(Objects.requireNonNull(start));
 
+                    Log.d(TAG, "start Date: " + startTime.getDay());
                     long differenceMs = Math.abs(now.getTime() - startTime.getTime());
                     long differenceDays = TimeUnit.DAYS.convert(differenceMs, TimeUnit.MILLISECONDS);
 
@@ -64,7 +65,7 @@ public class UtilsDB {
                             totalDifference += differenceMs;
 
                             // Add offTime (Time devices were disconnected)
-                            if (differenceMs > FIVE_MIN) {
+                            if (differenceMs > TEN_MIN) {
                                 ref.child(Objects.requireNonNull(contactID)).child("offTime").setValue(totalDifference);
                                 Log.d(TAG, "offTime added!");
                             } else
@@ -84,6 +85,7 @@ public class UtilsDB {
                 assert contactId != null;
 
                 ref.child(contactId).setValue(contact).addOnCompleteListener(task -> {
+                    Log.d(TAG, "add DB: "+ contact.getLocation());
                     if (task.isSuccessful()) {
                         Log.d(TAG, "registerContact: Successful push to DB!");
                         ContactTracing.recordIds.put(contactUid, contactId);
@@ -97,7 +99,7 @@ public class UtilsDB {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Log.d(TAG, error.getMessage());
+                Log.e(TAG, error.getMessage());
             }
         });
     }

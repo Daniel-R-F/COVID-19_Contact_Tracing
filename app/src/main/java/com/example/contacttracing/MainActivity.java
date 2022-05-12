@@ -159,7 +159,8 @@ public class MainActivity extends AppCompatActivity {
                 if (fAuth.getCurrentUser().isEmailVerified()) {
                     mProgress.setProgress(66);
                     pullUserData(fAuth.getUid());
-                    startService(new Intent(this, ContactTracing.class));
+                    if (!ContactTracing.active)
+                        startService(new Intent(this, ContactTracing.class));
                 } else {
                     initBuilder();
                     mBuilder.show();
