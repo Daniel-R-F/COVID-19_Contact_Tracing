@@ -142,6 +142,7 @@ public class StatusActivity extends AppCompatActivity {
                             DatabaseReference databaseReference =  FirebaseDatabase.getInstance().getReference(path);
 
                             String randKey = databaseReference.push().getKey();
+                            exposure.setKey(randKey);
                             databaseReference.child(randKey).setValue(exposure);
                         }
                     }
