@@ -60,7 +60,7 @@ public class LandingActivity extends AppCompatActivity {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference();
 
         ref.child("Exposures").child(currentUserId).get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
+            if (task.isSuccessful() && task.getResult().getChildrenCount() > 0) {
                 notificationsBtn.setVisibility(View.VISIBLE);
                 imageExposed.setVisibility(View.VISIBLE);
                 imageNotExposed.setVisibility(View.INVISIBLE);
