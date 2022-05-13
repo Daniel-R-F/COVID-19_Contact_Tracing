@@ -7,4 +7,6 @@
     <string name="forgot_password">Forgot Password?</string>
     <string name="bullet">•</string>
     <string name="permission_denied">This application requires location permissions to function.</string>
+    <string name="Back">back</string>
+    <string name="Update">update</string>
 </resources>

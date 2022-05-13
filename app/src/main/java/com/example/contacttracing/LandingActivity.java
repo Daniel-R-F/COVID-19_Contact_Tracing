@@ -58,7 +58,22 @@ public class LandingActivity extends AppCompatActivity {
         }else
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_LOCATION);
 
+
+        mButton_Account.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(LandingActivity.this, EditProfile.class);
+                startActivity(i);
+
+            }
+        });
+//        mButton_Account.setOnClickListener((v)->{
+//                Intent i = new Intent(v.getContext(), EditProfile.class);
+//                i.putExtra("email", "email@gmail.com");
+//                startActivity(new Intent(LandingActivity.this, EditProfile.class));
+//        });
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

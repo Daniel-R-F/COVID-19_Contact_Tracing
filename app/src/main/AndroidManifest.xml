@@ -12,10 +12,16 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
         android:theme="@style/Theme.ContactTracing">
-    
-        <service android:name=".LocationLogging"
-            android:enabled="true"/>
+        <activity
+            android:name=".EditProfile"
+            android:exported="false" />
+
+        <service
+            android:name=".LocationLogging"
+            android:enabled="true" />
+
         <activity
             android:name=".SignUpActivity"
             android:exported="false" />
