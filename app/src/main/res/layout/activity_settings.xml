@@ -14,6 +14,7 @@
       android:layout_height="wrap_content"
       android:layout_marginTop="36dp"
       android:text="Account"
+      android:textColor="#000000"
       android:textStyle="bold"
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintHorizontal_bias="0.044"
@@ -34,18 +35,20 @@
         android:id="@+id/email_tv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/black"
-        android:textSize="14sp"
-        android:text="Change Email" />
+        android:fontFamily="monospace"
+        android:text="Change Email"
+        android:textColor="#000000"
+        android:textSize="14sp" />
 
 
     <TextView
         android:id="@+id/password_tv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:fontFamily="monospace"
+        android:text="Change password"
         android:textColor="@color/black"
         android:textSize="14sp"
-        android:text="Change password"
         tools:layout_editor_absoluteY="20dp" />
 
 
@@ -53,9 +56,10 @@
         android:id="@+id/update_tv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:fontFamily="monospace"
+        android:text="Status update"
         android:textColor="@color/black"
         android:textSize="14sp"
-        android:text="Status update"
         tools:layout_editor_absoluteY="39dp" />
 
 
@@ -63,9 +67,11 @@
         android:id="@+id/logout_tv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:fontFamily="monospace"
+        android:text="Logout"
+        android:textAlignment="viewStart"
         android:textColor="@color/black"
         android:textSize="14sp"
-        android:text="Logout"
         tools:layout_editor_absoluteY="59dp" />
   </LinearLayout>
 
@@ -75,6 +81,7 @@
       android:layout_height="wrap_content"
       android:layout_marginTop="32dp"
       android:text="Application"
+      android:textColor="#000000"
       android:textStyle="bold"
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintHorizontal_bias="0.047"
@@ -86,7 +93,12 @@
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_marginTop="8dp"
+      android:fontFamily="monospace"
       android:text="Run in Background"
+      android:textAlignment="viewStart"
+      android:textAllCaps="false"
+      android:textColor="#000000"
+      android:textStyle="bold"
       app:layout_constraintBottom_toBottomOf="parent"
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintHorizontal_bias="0.066"

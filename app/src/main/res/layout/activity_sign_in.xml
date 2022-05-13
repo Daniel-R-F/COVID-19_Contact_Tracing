@@ -34,9 +34,13 @@
 
     <EditText
         android:id="@+id/editTextTextEmailAddress"
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
+        android:layout_width="300dp"
+        android:layout_height="55dp"
         android:layout_marginTop="24dp"
+        android:background="@drawable/cutom_edittext_email"
+        android:drawableStart="@drawable/ic_baseline_email"
+        android:drawablePadding="10dp"
+        android:elevation="5dp"
         android:autofillHints=""
         android:ems="10"
         android:hint="@string/email"
@@ -49,14 +53,20 @@
 
     <EditText
         android:id="@+id/editTextTextPassword"
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
+        android:layout_width="300dp"
+        android:layout_height="55dp"
+        android:layout_marginTop="8dp"
         android:autofillHints=""
+        android:background="@drawable/cutom_edittext_email"
+        android:drawableStart="@drawable/ic_password"
+        android:drawablePadding="10dp"
+        android:elevation="5dp"
         android:ems="10"
         android:hint="@string/password"
         android:inputType="textPassword"
         android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.504"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextTextEmailAddress" />
 
@@ -65,9 +75,13 @@
         android:layout_width="180dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:background="@drawable/custom_button_signin"
         android:enabled="false"
+        android:fontFamily="sans-serif"
         android:text="@string/common_signin_button_text"
         android:textAllCaps="false"
+        android:textColor="#000000"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextTextPassword" />
@@ -76,10 +90,13 @@
         android:id="@+id/sign_in_google"
         android:layout_width="180dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/custom_button_signin"
         android:drawableStart="@drawable/common_google_signin_btn_icon_light"
         android:text="@string/common_signin_button_text_long"
         android:textAllCaps="false"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.502"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/sign_in_btn" />
 
