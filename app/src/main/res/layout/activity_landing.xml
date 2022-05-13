@@ -32,6 +32,7 @@
         android:background="@drawable/custom_button_circle"
         android:fontFamily="@font/aldrich"
         android:text="Exposures"
+        android:visibility="invisible"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -39,11 +40,24 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
-        android:id="@+id/imageView3"
+        android:id="@+id/imageView_exposed"
         android:layout_width="wrap_content"
         android:layout_height="500dp"
-        android:layout_marginBottom="144dp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:srcCompat="@drawable/ic_alert"
-        tools:layout_editor_absoluteX="0dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.311"
+        app:srcCompat="@drawable/ic_alert" />
+
+    <ImageView
+        android:id="@+id/imageView_notexposed"
+        android:layout_width="wrap_content"
+        android:layout_height="500dp"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.311"
+        app:srcCompat="@drawable/ic_undraw_light_the_fire_gt58" />
 </androidx.constraintlayout.widget.ConstraintLayout>
