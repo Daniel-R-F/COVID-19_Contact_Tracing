@@ -285,11 +285,11 @@ public class ContactTracing extends Service {
         String randKey = ref.push().getKey();
         Date now = new Date();
 
-        ref.child(randKey).setValue(new Exposure(0, now.getTime(), mAddress));
+        ref.child(randKey).setValue(new Exposure(0, now.getTime(), mAddress, randKey));
     }
 
     private void exposureNotification() {
-        Intent notificationIntent = new Intent(this, StatusActivity.class);
+        Intent notificationIntent = new Intent(this, NotificationsActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
                 notificationIntent, 0);
 

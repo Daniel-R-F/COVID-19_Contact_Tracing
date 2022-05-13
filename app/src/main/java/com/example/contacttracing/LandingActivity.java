@@ -14,6 +14,7 @@ import com.google.firebase.auth.FirebaseAuth;
 public class LandingActivity extends AppCompatActivity {
 
     private Button mButton_settings;
+    private Button notificationsBtn;
 
     private FirebaseAuth mFirebaseAuth;
 
@@ -38,9 +39,14 @@ public class LandingActivity extends AppCompatActivity {
 
     private void wireDisplay() {
         mButton_settings = findViewById(R.id.settings);
+        notificationsBtn = findViewById(R.id.notifications_btn);
 
         mButton_settings.setOnClickListener(view -> {
             startActivity(SettingsActivity.intentFactory(this));
+        });
+
+        notificationsBtn.setOnClickListener(view -> {
+            startActivity(NotificationsActivity.intentFactory(this));
         });
 
 

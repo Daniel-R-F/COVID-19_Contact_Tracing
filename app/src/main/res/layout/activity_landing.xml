@@ -11,9 +11,19 @@
         android:layout_width="144dp"
         android:layout_height="48dp"
         android:text="Settings"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/notifications_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Exposures"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/settings" />
 </androidx.constraintlayout.widget.ConstraintLayout>
